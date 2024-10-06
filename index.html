@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css"
         integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.5.1/axios.min.js"
@@ -14,31 +15,28 @@
 
 <body>
 
-
     <div class="container-fluid">
-
         <h1 class="row">Login Here</h1>
-
         <main>
             <div class="row">
-                <label for="username">Username </label>
+                <label for="username">username</label>
                 <input type="text" name="username" id="username">
             </div>
 
             <div class="row">
-                <label for="password">Password </label>
+                <label for="password">password</label>
                 <input type="password" name="password" id="password">
             </div>
 
             <div>
                 <button onclick="login()">Login</button>
-                <button onclick="getDashboard()">Get Dashboard</button>
+                <button onclick="getDashboard()">Get Dashboard </button>
+                <button onclick="getSettings()">Get Settings </button>
             </div>
         </main>
     </div>
 
     <script>
-
         function login() {
             const data = {
                 username: document.getElementById('username').value,
@@ -46,16 +44,14 @@
             };
             axios.post('/api/login', data)
                 .then(res => {
-                    console.log(res);
                     document.getElementById('username').value = '';
                     document.getElementById('password').value = '';
                     if (res && res.data && res.data.success) {
                         const token = res.data.token;
                         localStorage.setItem('jwt', token);
-                        //history.pushState({}, "", "/dashboard");
                         getDashboard();
                     }
-                })
+                });
         }
 
         function getDashboard() {
@@ -66,20 +62,48 @@
                 }
             }).then(res => {
                 if (res && res.data && res.data.success) {
-                    // history.pushState({}, "", "/dashboard");
                     document.querySelector('h1.row').innerHTML = 'Dashboard';
                     document.querySelector('main').innerHTML = res.data.myContent;
+                    history.pushState(null, null, '/dashboard');
+
                 }
+
+            }).catch(err => {
+                console.error('Error accessing dashboard:', err.response.data);
             });
         }
 
-        function onLoad() {
+        function getSettings() {
             const token = localStorage.getItem('jwt');
+            axios.get('/api/settings', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            }).then(res => {
+                if (res && res.data && res.data.success) {
+                    document.querySelector('h1.row').innerHTML = 'Settings';
+                    document.querySelector('main').innerHTML = res.data.myContent;
+                    history.pushState(null, null, '/settings');
+                }
+            }).catch(err => {
+                console.error('Error accessing settings:', err.response.data);
+            });
+        }
+
+        function handleTokenExpiration() {
+            console.log('Token Expired')
+            localStorage.removeItem('jwt');
+            window.location.href = '/';
+        }
+
+        /* function onLoad() {
+            const token = localStorage.getItem('jwt')
             if (token) {
                 getDashboard();
             }
         }
-        onLoad();
+        onLoad(); */
+
     </script>
 
 </body>
